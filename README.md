@@ -50,7 +50,7 @@ function initializeVariables()
     -   It creates the map and the continents list already stored in the local storage - it loads it from there.
     -   Otherwise it calls the Countries REST API to get the list of countries as follows:
         -   First call the Countries REST API to get the list of countries per continent and store in countriesMap([See Notes](#NOTES)).
-        -   Then call the Covid REST API to get the CovidData per country and store in covidPerContinentMap(See Notes below).
+        -   Then call the Covid REST API to get the CovidData per country and store in covidPerContinentMap([See Notes](#NOTES)).
 
 ```
 function renderPage()
@@ -69,7 +69,7 @@ function renderChart(covidData)
 
 -   This function is called when the user clicks on a continent button.
     -   it gets the CovidData object of the selected continent and calls the renderChart function.
-    -   it uses the chart.js library to create a chart with the data of the selected continent(See Notes below).
+    -   it uses the chart.js library to create a chart with the data of the selected continent([See Notes](#NOTES)).
 
 ---
 
