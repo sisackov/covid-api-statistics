@@ -1,4 +1,4 @@
-import { fetchCountries } from './utils.js';
+import { fetchCountries, fetchCovidData } from './utils.js';
 
 // continentsList = ['Africa', 'Antarctica', 'Asia', 'Australia', 'Europe', 'North America', 'South America'];
 export let continentsList = [
@@ -9,13 +9,22 @@ export let continentsList = [
     'North America',
     'South America',
 ]; //list of strings with the names of the continents
-export let countriesMap = {}; //map where key is continent name and value is list of strings with the names of the countries
-let covidPerContinentMap = {}; //map where key is continent name and value is CovidData object
+export let countriesMap = new Map(); //map where key is continent name and value is list of Country objects TODO
+export let covidPerCountryMap = new Map(); //map where key is country name and value is CovidData object
+export let covidPerContinentMap = {}; //map where key is continent name and value is CovidData object
 let currentlySelectedContinent = '';
 
-class CovidData {
-    constructor(continent, confirmed, deaths, recovered, critical) {
-        this.continent = continent;
+export class Country {
+    constructor(name, continent, code, covidData) {
+        this.name = name;
+        this.continent = continent; //TODO maybe redundant
+        this.code = code;
+        this.covidData = covidData;
+    }
+}
+
+export class CovidData {
+    constructor(confirmed, deaths, recovered, critical) {
         this.confirmed = confirmed;
         this.deaths = deaths;
         this.recovered = recovered;
@@ -39,9 +48,12 @@ const countriesContainer = document.querySelector('#countries-container');
  * in covidPerContinentMap.
  */
 function initializeVariables() {
+    fetchCovidData();
     fetchCountries();
 }
 initializeVariables();
+
+// const getAverage
 
 /**
  * This function after the page is loaded, and initializeVariables finished.
