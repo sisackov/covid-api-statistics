@@ -157,6 +157,7 @@ export class ChartDisplay {
     }
 }
 
+//** TODO: line, bar, doughnut, pie, polarArea, scatter */
 function renderChart(chartDisplay, chartType) {
     const ctx = document.getElementById('myChart');
     if (currentChart) {
@@ -204,7 +205,7 @@ function onContinentClick(ev) {
 
 function onStatClick(ev) {
     const stat = ev.target.innerText;
-    renderChart(getChartCountriesDisplay(selectedContinent, stat), 'bar');
+    renderChart(getChartCountriesDisplay(selectedContinent, stat), 'line');
 }
 
 function onCountryClick(ev) {
