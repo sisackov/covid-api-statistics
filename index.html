@@ -6,13 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COVID Statistics</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="js/app.js" defer type="module"></script>
 </head>
 
 <body>
-    <div class="chart-container"></div>
-    <div class="stats-container"></div>
-    <div class="continents-container"></div>
-    <div class="countries-container"></div>
+    <div id="chart-container">
+        <canvas id="myChart" width="400" height="150"></canvas><!-- TODO styling and naming -->
+    </div>
+    <div id="stats-container"></div>
+    <div id="continents-container"></div>
+    <div id="countries-container"></div>
 </body>
 
 </html>
