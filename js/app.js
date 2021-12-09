@@ -17,7 +17,7 @@ export let continentsList = [
     'South America',
 ]; //list of strings with the names of the continents
 export let continentToCountriesMap = new Map(); //map where key is continent name and value is list of Country objects
-export let countryToCodeMap = new Map(); //map where key is country name and value is list of country code
+// export let countryToCodeMap = new Map(); //map where key is country name and value is list of country code
 export let covidPerCountryMap = new Map(); //map where key is country name and value is CovidData object
 export let covidPerContinentMap = new Map(); //map where key is continent name and value is CovidData object
 let currentChart;
@@ -41,7 +41,18 @@ export class CovidData {
     }
 }
 
+export class ChartDisplay {
+    constructor(labels, tooltip, data, backgroundColors, borderColors) {
+        this.labels = labels;
+        this.tooltip = tooltip;
+        this.data = data;
+        this.backgroundColors = backgroundColors;
+        this.borderColors = borderColors;
+    }
+}
+
 const chartContainer = document.querySelector('#chart-container');
+// chartContainer.classList.add('w-100', 'h-100');
 const statsContainer = document.querySelector('#stats-container');
 const continentsContainer = document.querySelector('#continents-container');
 const countriesContainer = document.querySelector('#countries-container');
@@ -68,7 +79,7 @@ async function initializeVariables() {
             continentToCountriesMap,
             true
         );
-        saveToLocalStorage('countryToCodeMap', countryToCodeMap, true);
+        // saveToLocalStorage('countryToCodeMap', countryToCodeMap, true);
         saveToLocalStorage('covidPerCountryMap', covidPerCountryMap, true);
         saveToLocalStorage('covidPerContinentMap', covidPerContinentMap, true);
         saveToLocalStorage('hasCovidData', true);
@@ -78,7 +89,7 @@ async function initializeVariables() {
             'continentToCountriesMap',
             true
         );
-        countryToCodeMap = getFromLocalStorage('countryToCodeMap', true);
+        // countryToCodeMap = getFromLocalStorage('countryToCodeMap', true);
         covidPerCountryMap = getFromLocalStorage('covidPerCountryMap', true);
         covidPerContinentMap = getFromLocalStorage(
             'covidPerContinentMap',
@@ -88,10 +99,8 @@ async function initializeVariables() {
 
     loadPage(); //TODO: move from here
 }
-localStorage.clear();
+localStorage.clear(); //TODO: remove
 initializeVariables();
-
-// const getAverage
 
 /**
  * This function after the page is loaded, and initializeVariables finished.
@@ -110,7 +119,7 @@ function loadPage() {
 function renderContinents() {
     continentsList.forEach((continent) => {
         const button = document.createElement('button');
-        button.classList.add('btn', 'btn-secondary', 'btn-sm', 'ml-3'); //TODO: add class
+        button.classList.add('btn', 'btn-continent', 'ml-3');
         button.innerText = continent;
         button.addEventListener('click', onContinentClick);
         continentsContainer.appendChild(button);
@@ -122,7 +131,7 @@ function renderStats(continent) {
     statsContainer.innerHTML = '';
     for (let key in stats) {
         const button = document.createElement('button');
-        button.classList.add('btn', 'btn-secondary', 'btn-sm', 'm-3'); //TODO: add class
+        button.classList.add('btn', 'btn-stat', 'm-3'); //TODO: add class
         button.innerText = key;
         button.addEventListener('click', onStatClick);
         statsContainer.appendChild(button);
@@ -134,7 +143,7 @@ function renderCountries(continent) {
     const countries = continentToCountriesMap.get(continent);
     countries.forEach((country) => {
         const span = document.createElement('span');
-        span.classList.add('btn', 'm-3'); //TODO: add class
+        span.classList.add('btn', 'btn-country'); //TODO: add class
         span.innerText = country.name;
         span.addEventListener('click', onCountryClick);
         countriesContainer.appendChild(span);
@@ -147,19 +156,9 @@ function renderCountries(continent) {
     -   it uses the chart.js library to create a chart with the data of the selected continent
  * @param {CovidData} covidData 
  */
-export class ChartDisplay {
-    constructor(labels, tooltip, data, backgroundColors, borderColors) {
-        this.labels = labels;
-        this.tooltip = tooltip;
-        this.data = data;
-        this.backgroundColors = backgroundColors;
-        this.borderColors = borderColors;
-    }
-}
-
-//** TODO: line, bar, doughnut, pie, polarArea, scatter */
 function renderChart(chartDisplay, chartType) {
-    const ctx = document.getElementById('myChart');
+    //** TODO: line, bar, doughnut, pie, polarArea, scatter */
+    const ctx = document.getElementById('canvas-chart');
     if (currentChart) {
         currentChart.destroy();
     }

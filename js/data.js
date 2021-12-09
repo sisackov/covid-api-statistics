@@ -1,7 +1,6 @@
 import {
     continentsList,
     continentToCountriesMap,
-    countryToCodeMap,
     Country,
     covidPerCountryMap,
     CovidData,
