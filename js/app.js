@@ -11,7 +11,7 @@ import { saveToLocalStorage, getFromLocalStorage } from './utils.js';
 export let continentsList = [
     'Africa',
     'Asia',
-    //'Australia', TODO
+    'Oceania', //TODO
     'Europe',
     'North America',
     'South America',
