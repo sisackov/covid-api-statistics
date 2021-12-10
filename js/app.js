@@ -5,19 +5,21 @@ import {
     getCountry,
     getChartStatsDisplay,
     getChartCountriesDisplay,
+    fetchAll,
+    fetchContinents,
 } from './data.js';
 import { saveToLocalStorage, getFromLocalStorage } from './utils.js';
 
-export let continentsList = [
-    'Africa',
-    'Asia',
-    'Oceania', //TODO
-    'Europe',
-    'North America',
-    'South America',
-]; //list of strings with the names of the continents
+export let continentsList = [];
+// export let continentsList = [
+//     'Africa',
+//     'Asia',
+//     'Oceania', //TODO
+//     'Europe',
+//     'North America',
+//     'South America',
+// ]; //list of strings with the names of the continents
 export let continentToCountriesMap = new Map(); //map where key is continent name and value is list of Country objects
-// export let countryToCodeMap = new Map(); //map where key is country name and value is list of country code
 export let covidPerCountryMap = new Map(); //map where key is country name and value is CovidData object
 export let covidPerContinentMap = new Map(); //map where key is continent name and value is CovidData object
 let currentChart;
@@ -69,6 +71,7 @@ const countriesContainer = document.querySelector('#countries-container');
  */
 async function initializeVariables() {
     if (!localStorage.getItem('hasCovidData')) {
+        await fetchContinents();
         await fetchCovidData();
         await fetchCountries();
         getCovidPerContinentData();
@@ -79,7 +82,6 @@ async function initializeVariables() {
             continentToCountriesMap,
             true
         );
-        // saveToLocalStorage('countryToCodeMap', countryToCodeMap, true);
         saveToLocalStorage('covidPerCountryMap', covidPerCountryMap, true);
         saveToLocalStorage('covidPerContinentMap', covidPerContinentMap, true);
         saveToLocalStorage('hasCovidData', true);

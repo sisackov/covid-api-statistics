@@ -9,12 +9,22 @@ import {
 } from './app.js';
 import { getColorsArray } from './utils.js';
 
-async function fetchAll(urls) {
-    const urlsProm = [];
-    urls.forEach((url) => {
-        urlsProm.push(axios.get(url));
-    });
+export async function fetchAll(urls) {
+    const urlsProm = urls.map((url) => axios.get(url));
     return Promise.all(urlsProm);
+}
+
+export async function fetchContinents() {
+    const regions = await fetchAll([
+        'https://restcountries.com/v3.1/all?fields=region',
+    ]);
+
+    regions[0].data.forEach((region) => {
+        const continent = region.region;
+        if (continent && !continentsList.includes(continent)) {
+            continentsList.push(continent);
+        }
+    });
 }
 
 export async function fetchCountries() {
