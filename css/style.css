@@ -74,19 +74,35 @@ body {
     align-items: flex-start;
 }
 
-.side-container,
-.continents-container {
+#stats-container,
+#continents-container {
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
 
-    margin: 50px 0 auto;
+    margin: 0 auto;
 }
 
 #canvas-chart {
-    width: 50px;
-    height: 15px;
+    width: 100% !important;
+    height: 70vmin !important;
+}
+
+select,
+option.selected {
+    width: 10rem;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212129;
+    background-color: #fff;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .btn {
@@ -131,31 +147,4 @@ body {
     border-color: hsl(27, 89%, 48%);
 
     margin: 4px;
-}
-
-a,
-area,
-button,
-input,
-label,
-select,
-summary,
-textarea {
-    touch-action: manipulation;
-}
-
-button,
-input {
-    overflow: visible;
-}
-
-button,
-input,
-optgroup,
-select,
-textarea {
-    margin: 0;
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
 }

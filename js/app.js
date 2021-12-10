@@ -140,16 +140,25 @@ function renderStats(continent) {
     }
 }
 
+function createOptionElement(label, value) {
+    const option = document.createElement('option');
+    option.innerText = label;
+    option.value = value;
+    // option.addEventListener('click', onCountryClick);
+    return option;
+}
+
 function renderCountries(continent) {
-    countriesContainer.innerHTML = '';
+    const select = document.createElement('select');
+    select.appendChild(createOptionElement('Select Country', '0'));
+    statsContainer.appendChild(select);
+
     const countries = continentToCountriesMap.get(continent);
     countries.forEach((country) => {
-        const span = document.createElement('span');
-        span.classList.add('btn', 'btn-country'); //TODO: add class
-        span.innerText = country.name;
-        span.addEventListener('click', onCountryClick);
-        countriesContainer.appendChild(span);
+        const option = createOptionElement(country.name, country.code);
+        select.appendChild(option);
     });
+    select.addEventListener('change', onCountryChange);
 }
 
 /**
@@ -216,4 +225,18 @@ function onCountryClick(ev) {
         getChartStatsDisplay(covidPerCountryMap.get(countryObj.code), country),
         'bar'
     );
+}
+
+function onCountryChange(ev) {
+    const code = ev.target.value;
+    if (code === '0') {
+        selectedCountry = null;
+    } else {
+        const country = ev.target.selectedOptions[0].innerText;
+        renderChart(
+            getChartStatsDisplay(covidPerCountryMap.get(code), country),
+            'bar'
+        );
+        selectedCountry = code;
+    }
 }
