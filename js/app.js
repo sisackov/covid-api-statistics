@@ -8,28 +8,29 @@ import {
     fetchAll,
     fetchContinents,
 } from './data.js';
-import { saveToLocalStorage, getFromLocalStorage } from './utils.js';
+import {
+    saveToLocalStorage,
+    getFromLocalStorage,
+    isNumberInRange,
+} from './utils.js';
 
 export let continentsList = [];
-// export let continentsList = [
-//     'Africa',
-//     'Asia',
-//     'Oceania', //TODO
-//     'Europe',
-//     'North America',
-//     'South America',
-// ]; //list of strings with the names of the continents
 export let continentToCountriesMap = new Map(); //map where key is continent name and value is list of Country objects
 export let covidPerCountryMap = new Map(); //map where key is country name and value is CovidData object
 export let covidPerContinentMap = new Map(); //map where key is continent name and value is CovidData object
 let currentChart;
+let currentScreenSize;
 let selectedContinent = '';
 let selectedCountry = '';
+
+const SCREEN_SIZES = {
+    NARROW: { min: 0, max: 700 },
+    WIDE: { min: 701, max: 3200 },
+};
 
 export class Country {
     constructor(name, code) {
         this.name = name;
-        // this.continent = continent; //TODO maybe redundant
         this.code = code;
     }
 }
@@ -54,10 +55,10 @@ export class ChartDisplay {
 }
 
 const chartContainer = document.querySelector('#chart-container');
-// chartContainer.classList.add('w-100', 'h-100');
+const loaderWrapper = document.querySelector('#loader-wrapper');
+const mainWrapper = document.querySelector('#main-wrapper');
 const statsContainer = document.querySelector('#stats-container');
 const continentsContainer = document.querySelector('#continents-container');
-const countriesContainer = document.querySelector('#countries-container');
 
 /**
  * This function is called when the page is loaded.
@@ -70,6 +71,8 @@ const countriesContainer = document.querySelector('#countries-container');
  * in covidPerContinentMap.
  */
 async function initializeVariables() {
+    currentScreenSize = getScreenSize();
+
     if (!localStorage.getItem('hasCovidData')) {
         await fetchContinents();
         await fetchCovidData();
@@ -91,7 +94,6 @@ async function initializeVariables() {
             'continentToCountriesMap',
             true
         );
-        // countryToCodeMap = getFromLocalStorage('countryToCodeMap', true);
         covidPerCountryMap = getFromLocalStorage('covidPerCountryMap', true);
         covidPerContinentMap = getFromLocalStorage(
             'covidPerContinentMap',
@@ -99,10 +101,9 @@ async function initializeVariables() {
         );
     }
 
-    loadPage(); //TODO: move from here
+    renderPage();
 }
 localStorage.clear(); //TODO: remove
-initializeVariables();
 
 /**
  * This function after the page is loaded, and initializeVariables finished.
@@ -113,38 +114,83 @@ initializeVariables();
  * -    it dynamically fills the countries container with links, one for each country.
  * -    calls the renderChart function to render the chart.
  */
-function loadPage() {
+function renderPage() {
+    hideLoader();
+
     renderContinents();
-    onContinentClick({ target: { innerText: continentsList[0] } }); // dummy click to render the first continent
+    onContinentChange(new Event('dummy'), true); // dummy click to render the first continent
+}
+
+function hideLoader() {
+    loaderWrapper.classList.add('hidden');
+    mainWrapper.classList.remove('hidden');
+    mainWrapper.classList.add('d-flex');
 }
 
 function renderContinents() {
+    if (currentScreenSize === 'WIDE') {
+        renderContinentsButtons();
+    } else {
+        renderContinentsDropdown();
+    }
+}
+
+function renderContinentsButtons() {
+    continentsContainer.innerHTML = '';
     continentsList.forEach((continent) => {
         const button = document.createElement('button');
         button.classList.add('btn', 'btn-continent', 'ml-3');
         button.innerText = continent;
-        button.addEventListener('click', onContinentClick);
+        button.addEventListener('click', onContinentChange);
         continentsContainer.appendChild(button);
     });
 }
 
+function renderContinentsDropdown() {
+    continentsContainer.innerHTML = '';
+    const select = document.createElement('select');
+    select.addEventListener('change', onContinentChange);
+    continentsList.forEach((continent) => {
+        select.appendChild(createOptionElement(continent, continent));
+    });
+    continentsContainer.appendChild(select);
+}
+
 function renderStats(continent) {
+    if (currentScreenSize === 'WIDE') {
+        renderStatsButtons(continent);
+    } else {
+        renderStatsDropdown(continent);
+    }
+}
+
+function renderStatsButtons(continent) {
     const stats = covidPerContinentMap.get(continent);
     statsContainer.innerHTML = '';
     for (let key in stats) {
         const button = document.createElement('button');
-        button.classList.add('btn', 'btn-stat', 'm-3'); //TODO: add class
+        button.classList.add('btn', 'btn-stat', 'm-3');
         button.innerText = key;
-        button.addEventListener('click', onStatClick);
+        button.addEventListener('click', onStatChange);
         statsContainer.appendChild(button);
     }
+}
+
+function renderStatsDropdown(continent) {
+    const stats = covidPerContinentMap.get(continent);
+    statsContainer.innerHTML = '';
+    const select = document.createElement('select');
+    select.addEventListener('change', onStatChange);
+    for (let key in stats) {
+        select.appendChild(createOptionElement(key, key));
+    }
+    statsContainer.appendChild(select);
 }
 
 function createOptionElement(label, value) {
     const option = document.createElement('option');
     option.innerText = label;
     option.value = value;
-    // option.addEventListener('click', onCountryClick);
     return option;
 }
 
@@ -162,17 +208,17 @@ function renderCountries(continent) {
 }
 
 /**
- * This function is called when a continent is selected.
-    -   it gets the CovidData object of the selected continent
-    -   it uses the chart.js library to create a chart with the data of the selected continent
- * @param {CovidData} covidData 
- */
+     * This function is called when a continent is selected.
+        -   it gets the CovidData object of the selected continent
+        -   it uses the chart.js library to create a chart with the data of the selected continent
+     * @param {CovidData} covidData 
+     */
 function renderChart(chartDisplay, chartType) {
     //** TODO: line, bar, doughnut, pie, polarArea, scatter */
-    const ctx = document.getElementById('canvas-chart');
     if (currentChart) {
         currentChart.destroy();
     }
+    const ctx = document.getElementById('canvas-chart');
     currentChart = new Chart(ctx, {
         type: chartType,
         data: {
@@ -197,11 +243,42 @@ function renderChart(chartDisplay, chartType) {
     });
 }
 
+function getScreenSize() {
+    let screenSize = 'WIDE';
+    const width = window.innerWidth;
+    for (const key in SCREEN_SIZES) {
+        if (
+            isNumberInRange(width, SCREEN_SIZES[key].min, SCREEN_SIZES[key].max)
+        ) {
+            screenSize = key;
+        }
+    }
+    return screenSize;
+}
+
 //*****************************************************************/
 //*****     Event Listeners                                 *******/
 //*****************************************************************/
-function onContinentClick(ev) {
-    selectedContinent = ev.target.innerText;
+window.addEventListener('load', () => {
+    initializeVariables();
+});
+
+window.addEventListener('resize', () => {
+    const screenSize = getScreenSize();
+    if (screenSize !== currentScreenSize) {
+        currentScreenSize = screenSize;
+        renderPage(); //TODO
+    }
+});
+
+function onContinentChange(ev, isInitial = false) {
+    if (isInitial) {
+        selectedContinent = continentsList[0];
+    } else if (ev.target.tagName === 'BUTTON') {
+        selectedContinent = ev.target.innerText;
+    } else {
+        selectedContinent = ev.target.value;
+    }
     renderStats(selectedContinent);
     renderCountries(selectedContinent);
     renderChart(
@@ -213,18 +290,12 @@ function onContinentClick(ev) {
     );
 }
 
-function onStatClick(ev) {
-    const stat = ev.target.innerText;
+function onStatChange(ev) {
+    let stat = ev.target.value;
+    if (ev.target.tagName === 'BUTTON') {
+        stat = ev.target.innerText;
+    }
     renderChart(getChartCountriesDisplay(selectedContinent, stat), 'line');
-}
-
-function onCountryClick(ev) {
-    const country = ev.target.innerText;
-    const countryObj = getCountry(selectedContinent, country);
-    renderChart(
-        getChartStatsDisplay(covidPerCountryMap.get(countryObj.code), country),
-        'bar'
-    );
 }
 
 function onCountryChange(ev) {

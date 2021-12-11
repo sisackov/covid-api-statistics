@@ -13,16 +13,18 @@
 </head>
 
 <body>
-    <div class="wrapper">
-        <div class="main-container">
-            <h1>COVID-19 Statistics</h1>
-            <div id="chart-container">
-                <canvas id="canvas-chart"></canvas>
-            </div>
-            <div id="stats-container">
-            </div>
-            <div id="continents-container"></div>
+    <div id="loader-wrapper" class="d-flex">
+        <h1>COVID-19 Statistics</h1>
+        <div class="loader"></div>
+        <h2>Loading...</h2>
+    </div>
+    <div id="main-wrapper" class="hidden">
+        <h1>COVID-19 Statistics</h1>
+        <div id="chart-container">
+            <canvas id="canvas-chart"></canvas>
         </div>
+        <div id="stats-container"></div>
+        <div id="continents-container"></div>
     </div>
 </body>
 

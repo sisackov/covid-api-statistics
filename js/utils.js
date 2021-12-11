@@ -13,6 +13,10 @@ export function getFromLocalStorage(key, isMap = false) {
     return JSON.parse(localStorage.getItem(key));
 }
 
+export function isNumberInRange(number, min, max) {
+    return number >= min && number <= max;
+}
+
 export function getColorsArray(size, a) {
     const colors = [];
     for (let i = 0; i < size; i++) {
