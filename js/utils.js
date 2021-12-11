@@ -28,3 +28,11 @@ export function getColorsArray(size, a) {
     }
     return colors;
 }
+
+export function getAverageByProperty(array, property) {
+    let sum = array.reduce((acc, curr) => {
+        if (curr && curr[property]) return acc + curr[property];
+        return acc;
+    }, 0);
+    return sum / array.length;
+}

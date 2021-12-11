@@ -2,10 +2,8 @@ import {
     fetchCountries,
     fetchCovidData,
     getCovidPerContinentData,
-    getCountry,
     getChartStatsDisplay,
     getChartCountriesDisplay,
-    fetchAll,
     fetchContinents,
 } from './data.js';
 import {
@@ -23,6 +21,7 @@ let currentScreenSize;
 let selectedContinent = '';
 let selectedCountry = '';
 
+const ONE_DAY = 60 * 60 * 24 * 1000; // (milliseconds).
 const SCREEN_SIZES = {
     NARROW: { min: 0, max: 700 },
     WIDE: { min: 701, max: 3200 },
@@ -37,10 +36,10 @@ export class Country {
 
 export class CovidData {
     constructor(confirmed, deaths, recovered, critical) {
-        this.confirmed = confirmed;
-        this.deaths = deaths;
-        this.recovered = recovered;
-        this.critical = critical;
+        this.Confirmed = confirmed;
+        this.Deaths = deaths;
+        this.Recovered = recovered;
+        this.Critical = critical;
     }
 }
 
@@ -54,7 +53,6 @@ export class ChartDisplay {
     }
 }
 
-const chartContainer = document.querySelector('#chart-container');
 const loaderWrapper = document.querySelector('#loader-wrapper');
 const mainWrapper = document.querySelector('#main-wrapper');
 const statsContainer = document.querySelector('#stats-container');
@@ -72,8 +70,25 @@ const continentsContainer = document.querySelector('#continents-container');
  */
 async function initializeVariables() {
     currentScreenSize = getScreenSize();
+    let savedDate = new Date(getFromLocalStorage('savedCovidData'));
 
-    if (!localStorage.getItem('hasCovidData')) {
+    console.log(savedDate.getTime());
+    console.log(new Date().getTime());
+
+    if (savedDate.getTime() > new Date().getTime() - ONE_DAY) {
+        console.log('loading from local storage');
+        continentsList = getFromLocalStorage('continentsList');
+        continentToCountriesMap = getFromLocalStorage(
+            'continentToCountriesMap',
+            true
+        );
+        covidPerCountryMap = getFromLocalStorage('covidPerCountryMap', true);
+        covidPerContinentMap = getFromLocalStorage(
+            'covidPerContinentMap',
+            true
+        );
+    } else {
+        console.log('loading from api');
         await fetchContinents();
         await fetchCovidData();
         await fetchCountries();
@@ -87,23 +102,12 @@ async function initializeVariables() {
         );
         saveToLocalStorage('covidPerCountryMap', covidPerCountryMap, true);
         saveToLocalStorage('covidPerContinentMap', covidPerContinentMap, true);
-        saveToLocalStorage('hasCovidData', true);
-    } else {
-        continentsList = getFromLocalStorage('continentsList');
-        continentToCountriesMap = getFromLocalStorage(
-            'continentToCountriesMap',
-            true
-        );
-        covidPerCountryMap = getFromLocalStorage('covidPerCountryMap', true);
-        covidPerContinentMap = getFromLocalStorage(
-            'covidPerContinentMap',
-            true
-        );
+        saveToLocalStorage('savedCovidData', new Date());
     }
 
     renderPage();
 }
-localStorage.clear(); //TODO: remove
+// localStorage.clear(); //TODO: remove
 
 /**
  * This function after the page is loaded, and initializeVariables finished.
@@ -233,13 +237,6 @@ function renderChart(chartDisplay, chartType) {
                 },
             ],
         },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                },
-            },
-        },
     });
 }
 
@@ -256,18 +253,35 @@ function getScreenSize() {
     return screenSize;
 }
 
+function setChartDefaultSize() {
+    const width = window.innerWidth;
+    if (width > 1200) {
+        Chart.defaults.font.size = 16;
+    } else if (width > 992) {
+        Chart.defaults.font.size = 14;
+    } else if (width > 768) {
+        Chart.defaults.font.size = 12;
+    } else if (width > 576) {
+        Chart.defaults.font.size = 10;
+    } else {
+        Chart.defaults.font.size = 8;
+    }
+}
+
 //*****************************************************************/
 //*****     Event Listeners                                 *******/
 //*****************************************************************/
 window.addEventListener('load', () => {
+    setChartDefaultSize();
     initializeVariables();
 });
 
 window.addEventListener('resize', () => {
+    setChartDefaultSize();
     const screenSize = getScreenSize();
     if (screenSize !== currentScreenSize) {
         currentScreenSize = screenSize;
-        renderPage(); //TODO
+        renderPage();
     }
 });
 

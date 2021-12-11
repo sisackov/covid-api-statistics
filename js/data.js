@@ -7,7 +7,7 @@ import {
     covidPerContinentMap,
     ChartDisplay,
 } from './app.js';
-import { getColorsArray } from './utils.js';
+import { getColorsArray, getAverageByProperty } from './utils.js';
 
 export async function fetchAll(urls) {
     const urlsProm = urls.map((url) => axios.get(url));
@@ -32,7 +32,6 @@ export async function fetchCountries() {
         (continent) =>
             `https://restcountries.com/v3.1/region/${continent.toLowerCase()}?fields=name,cca2`
     );
-    //TODO change to herokuapp api
     const response = await fetchAll(urls);
     for (let i = 0; i < continentsList.length; i++) {
         const countries = response[i].data.map(
@@ -40,7 +39,6 @@ export async function fetchCountries() {
         );
         continentToCountriesMap.set(continentsList[i], countries);
     }
-    // console.log(continentToCountriesMap);
 }
 
 export async function fetchCovidData() {
@@ -56,38 +54,24 @@ export async function fetchCovidData() {
             )
         );
     });
-    // console.log(covidPerCountryMap);
 }
 
 export function getCovidPerContinentData() {
-    for (const continent of continentsList) {
-        const countriesList = continentToCountriesMap.get(continent);
-        const len = countriesList.length;
-        let [confirmed, deaths, recovered, critical] = [0, 0, 0, 0];
-        countriesList.forEach((country) => {
-            const covidData = covidPerCountryMap.get(country.code);
-            if (covidData) {
-                confirmed += covidData.confirmed;
-                deaths += covidData.deaths;
-                recovered += covidData.recovered;
-                critical += covidData.critical;
-            } else {
-                console.error(country.name + ' - Covid Data not found');
-            }
-        });
+    continentsList.forEach((continent) => {
+        const countries = continentToCountriesMap.get(continent);
+        const covidData = countries.map((country) =>
+            covidPerCountryMap.get(country.code)
+        );
         covidPerContinentMap.set(
             continent,
             new CovidData(
-                Math.floor(confirmed / len),
-                Math.floor(deaths / len),
-                Math.floor(recovered / len),
-                Math.floor(critical / len)
+                Math.floor(getAverageByProperty(covidData, 'Confirmed')),
+                Math.floor(getAverageByProperty(covidData, 'Deaths')),
+                Math.floor(getAverageByProperty(covidData, 'Recovered')),
+                Math.floor(getAverageByProperty(covidData, 'Critical'))
             )
         );
-    }
-    // console.log(covidPerContinentMap);
-    // saveToLocalStorage('covidPerContinentMap', covidPerContinentMap);
-    // saveToLocalStorage('hasCovidData', true);
+    });
 }
 
 export function getCountry(continent, countryName) {
@@ -96,7 +80,7 @@ export function getCountry(continent, countryName) {
 }
 
 export function getChartStatsDisplay(covidData, name) {
-    const labels = ['Confirmed', 'Deaths', 'Recovered', 'Critical'];
+    const labels = Array.from(Object.keys(covidData));
     const tooltip = '# of total cases in ' + name;
     const backgroundColor = getColorsArray(labels.length, 0.2);
     const borderColor = getColorsArray(labels.length, 1);
