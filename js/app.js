@@ -136,7 +136,7 @@ async function initializeVariables() {
 
     renderPage();
 }
-localStorage.clear();
+// localStorage.clear();
 
 /**
  * This function after the page is loaded, and initializeVariables finished.

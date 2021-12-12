@@ -75,7 +75,6 @@ export async function fetchAllCountriesCovidData() {
     });
 
     const responses = await fetchAll(urls);
-    console.log('processing covid data');
     responses.forEach((response) => {
         const data = response.data.data;
         const timeline = data.timeline[0];
