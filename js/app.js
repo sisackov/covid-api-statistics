@@ -5,6 +5,8 @@ import {
     getChartStatsDisplay,
     getChartCountriesDisplay,
     fetchContinents,
+    getCountryCovidData,
+    getChartCountryDisplay,
 } from './data.js';
 import {
     saveToLocalStorage,
@@ -15,6 +17,7 @@ import {
 export let continentsList = [];
 export let continentToCountriesMap = new Map(); //map where key is continent name and value is list of Country objects
 export let covidPerCountryMap = new Map(); //map where key is country name and value is CovidData object
+export let covidExtendedPerCountryMap = new Map(); //map where key is country name and value is CovidData object
 export let covidPerContinentMap = new Map(); //map where key is continent name and value is CovidData object
 let currentChart;
 let currentScreenSize;
@@ -40,6 +43,35 @@ export class CovidData {
         this.Deaths = deaths;
         this.Recovered = recovered;
         this.Critical = critical;
+    }
+}
+
+export class CountryCovidData {
+    constructor(
+        totalCases,
+        newCases,
+        totalDeaths,
+        newDeaths,
+        totalRecovered,
+        inCriticalCondition
+    ) {
+        this.totalCases = totalCases;
+        this.newCases = newCases;
+        this.totalDeaths = totalDeaths;
+        this.newDeaths = newDeaths;
+        this.totalRecovered = totalRecovered;
+        this.inCriticalCondition = inCriticalCondition;
+    }
+
+    labels() {
+        return [
+            'Total Cases',
+            'New Cases',
+            'Total Deaths',
+            'New Deaths',
+            'Total Recovered',
+            'In Critical condition',
+        ];
     }
 }
 
@@ -72,11 +104,7 @@ async function initializeVariables() {
     currentScreenSize = getScreenSize();
     let savedDate = new Date(getFromLocalStorage('savedCovidData'));
 
-    console.log(savedDate.getTime());
-    console.log(new Date().getTime());
-
     if (savedDate.getTime() > new Date().getTime() - ONE_DAY) {
-        console.log('loading from local storage');
         continentsList = getFromLocalStorage('continentsList');
         continentToCountriesMap = getFromLocalStorage(
             'continentToCountriesMap',
@@ -88,7 +116,6 @@ async function initializeVariables() {
             true
         );
     } else {
-        console.log('loading from api');
         await fetchContinents();
         await fetchCovidData();
         await fetchCountries();
@@ -107,7 +134,6 @@ async function initializeVariables() {
 
     renderPage();
 }
-// localStorage.clear(); //TODO: remove
 
 /**
  * This function after the page is loaded, and initializeVariables finished.
@@ -217,7 +243,7 @@ function renderCountries(continent) {
         -   it uses the chart.js library to create a chart with the data of the selected continent
      * @param {CovidData} covidData 
      */
-function renderChart(chartDisplay, chartType) {
+export function renderChart(chartDisplay, chartType) {
     //** TODO: line, bar, doughnut, pie, polarArea, scatter */
     if (currentChart) {
         currentChart.destroy();
@@ -318,10 +344,7 @@ function onCountryChange(ev) {
         selectedCountry = null;
     } else {
         const country = ev.target.selectedOptions[0].innerText;
-        renderChart(
-            getChartStatsDisplay(covidPerCountryMap.get(code), country),
-            'bar'
-        );
+        getCountryCovidData(code, country);
         selectedCountry = code;
     }
 }

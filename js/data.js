@@ -6,8 +6,15 @@ import {
     CovidData,
     covidPerContinentMap,
     ChartDisplay,
+    covidExtendedPerCountryMap,
+    CountryCovidData,
+    renderChart,
 } from './app.js';
-import { getColorsArray, getAverageByProperty } from './utils.js';
+import {
+    getColorsArray,
+    getAverageByProperty,
+    saveToLocalStorage,
+} from './utils.js';
 
 export async function fetchAll(urls) {
     const urlsProm = urls.map((url) => axios.get(url));
@@ -56,6 +63,34 @@ export async function fetchCovidData() {
     });
 }
 
+export async function fetchCovidCountryData(code) {
+    let countryCovidData = covidExtendedPerCountryMap.get(code);
+    if (countryCovidData) {
+        return countryCovidData;
+    }
+
+    const covidResponse = axios
+        .get('https://corona-api.com/countries/' + code)
+        .then((response) => {
+            countryCovidData = new CountryCovidData(
+                response.data.data.latest_data.confirmed,
+                response.data.data.timeline[0].new_confirmed,
+                response.data.data.latest_data.deaths,
+                response.data.data.timeline[0].new_deaths,
+                response.data.data.latest_data.recovered,
+                response.data.data.latest_data.critical
+            );
+            covidExtendedPerCountryMap.set(code, countryCovidData);
+        });
+    await covidResponse;
+    saveToLocalStorage(
+        'covidExtendedPerCountryMap',
+        covidExtendedPerCountryMap,
+        true
+    );
+    return countryCovidData;
+}
+
 export function getCovidPerContinentData() {
     continentsList.forEach((continent) => {
         const countries = continentToCountriesMap.get(continent);
@@ -72,6 +107,11 @@ export function getCovidPerContinentData() {
             )
         );
     });
+}
+
+export async function getCountryCovidData(code, country) {
+    let data = await fetchCovidCountryData(code);
+    renderChart(getChartCountryDisplay(data, country), 'bar');
 }
 
 export function getCountry(continent, countryName) {
@@ -109,6 +149,23 @@ export function getChartCountriesDisplay(continent, stat) {
         labels,
         tooltip,
         data,
+        backgroundColor,
+        borderColor
+    );
+}
+
+export function getChartCountryDisplay(covidData, name) {
+    console.log(covidData);
+
+    const labels = Array.from(covidData.labels());
+    const tooltip = '# of cases in ' + name;
+    const backgroundColor = getColorsArray(labels.length, 0.2);
+    const borderColor = getColorsArray(labels.length, 1);
+
+    return new ChartDisplay(
+        labels,
+        tooltip,
+        Array.from(Object.values(covidData)),
         backgroundColor,
         borderColor
     );
