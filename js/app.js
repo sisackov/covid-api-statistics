@@ -3,10 +3,11 @@ import {
     fetchCovidData,
     getCovidPerContinentData,
     getChartStatsDisplay,
-    getChartCountriesDisplay,
+    getChartContinentDisplay,
     fetchContinents,
     getCountryCovidData,
     getChartCountryDisplay,
+    fetchAllCountriesCovidData,
 } from './data.js';
 import {
     saveToLocalStorage,
@@ -63,7 +64,7 @@ export class CountryCovidData {
         this.inCriticalCondition = inCriticalCondition;
     }
 
-    labels() {
+    getLabels() {
         return [
             'Total Cases',
             'New Cases',
@@ -119,6 +120,7 @@ async function initializeVariables() {
         await fetchContinents();
         await fetchCovidData();
         await fetchCountries();
+        fetchAllCountriesCovidData(); //asynchronously fetch data for all countries while the page is being rendered
         getCovidPerContinentData();
 
         saveToLocalStorage('continentsList', continentsList);
@@ -134,6 +136,7 @@ async function initializeVariables() {
 
     renderPage();
 }
+localStorage.clear();
 
 /**
  * This function after the page is loaded, and initializeVariables finished.
@@ -335,7 +338,7 @@ function onStatChange(ev) {
     if (ev.target.tagName === 'BUTTON') {
         stat = ev.target.innerText;
     }
-    renderChart(getChartCountriesDisplay(selectedContinent, stat), 'line');
+    renderChart(getChartContinentDisplay(selectedContinent, stat), 'line');
 }
 
 function onCountryChange(ev) {

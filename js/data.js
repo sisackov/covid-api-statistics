@@ -63,6 +63,39 @@ export async function fetchCovidData() {
     });
 }
 
+export async function fetchAllCountriesCovidData() {
+    const urls = [];
+    continentToCountriesMap.forEach((countries) => {
+        countries.forEach((country) => {
+            if (country.code !== 'XK') {
+                // Kosovo
+                urls.push(`https://corona-api.com/countries/${country.code}`);
+            }
+        });
+    });
+
+    const responses = await fetchAll(urls);
+    console.log('processing covid data');
+    responses.forEach((response) => {
+        const data = response.data.data;
+        const timeline = data.timeline[0];
+        const countryCovidData = new CountryCovidData(
+            data.latest_data.confirmed,
+            timeline ? timeline.new_confirmed : 0,
+            data.latest_data.deaths,
+            timeline ? timeline.new_deaths : 0,
+            data.latest_data.recovered,
+            data.latest_data.critical
+        );
+        covidExtendedPerCountryMap.set(data.code, countryCovidData);
+    });
+    saveToLocalStorage(
+        'covidExtendedPerCountryMap',
+        covidExtendedPerCountryMap,
+        true
+    );
+}
+
 export async function fetchCovidCountryData(code) {
     let countryCovidData = covidExtendedPerCountryMap.get(code);
     if (countryCovidData) {
@@ -83,11 +116,7 @@ export async function fetchCovidCountryData(code) {
             covidExtendedPerCountryMap.set(code, countryCovidData);
         });
     await covidResponse;
-    saveToLocalStorage(
-        'covidExtendedPerCountryMap',
-        covidExtendedPerCountryMap,
-        true
-    );
+
     return countryCovidData;
 }
 
@@ -134,7 +163,7 @@ export function getChartStatsDisplay(covidData, name) {
     );
 }
 
-export function getChartCountriesDisplay(continent, stat) {
+export function getChartContinentDisplay(continent, stat) {
     const countries = continentToCountriesMap.get(continent);
     const labels = countries.map((country) => country.name);
     const tooltip = `# of ${stat} cases in ${continent}`;
@@ -155,9 +184,7 @@ export function getChartCountriesDisplay(continent, stat) {
 }
 
 export function getChartCountryDisplay(covidData, name) {
-    console.log(covidData);
-
-    const labels = Array.from(covidData.labels());
+    const labels = Array.from(covidData.getLabels());
     const tooltip = '# of cases in ' + name;
     const backgroundColor = getColorsArray(labels.length, 0.2);
     const borderColor = getColorsArray(labels.length, 1);
