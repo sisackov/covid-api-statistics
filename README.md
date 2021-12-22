@@ -2,6 +2,10 @@
 
 This site shows the latest covid-19 statistics.
 
+## Netlify
+
+https://covid-api-stats.netlify.app/
+
 ## Pseudo Code
 
 -   ### HTML/CSS
